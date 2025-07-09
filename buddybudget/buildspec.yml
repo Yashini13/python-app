@@ -1,0 +1,20 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo Logging into Amazon ECR...
+      - $(aws ecr get-login --no-include-email --region us-central-1)
+      - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+  build:
+    commands:
+      - docker build -t budgetbuddy:$IMAGE_TAG .
+      - docker tag budgetbuddy:$IMAGE_TAG ECR_URI:budgetbuddy-$IMAGE_TAG
+  post_build:
+    commands:
+      - docker push ECR_URI:budgetbuddy-$IMAGE_TAG
+      - echo "Image pushed to ECR"
+
+artifacts:
+  files:
+    - '**/*'
